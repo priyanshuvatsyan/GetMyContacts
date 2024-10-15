@@ -1,0 +1,74 @@
+.header{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10%;
+    margin-top: 3%;
+    padding: 10px 0px;
+    box-shadow: 10px 10px 200px 9px #aaaaaa; 
+}
+.name {
+    margin-right: 5%;
+    display: flex;
+    flex-direction: row;
+    background: linear-gradient(to left, rgb(45, 62, 218), white 250%);
+    width: 200px;
+    height: 50px;
+    border: 2px solid #ccc; /* Border color */
+    border-radius: 20px; /* Half of the height to make it circular */
+   padding-bottom: 15px;
+   padding-left: 20px;
+   padding-right: 20px;
+    font-size: 16px;
+    outline: none; /* Remove the default outline */
+    transition: all 0.3s ease;
+    
+}
+
+.name h2{
+    color: white;
+    border-radius: 20% ;
+   font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    margin-left: 5px;
+}
+
+.search-box {
+    margin-right: 1%;
+    width: 30%;
+    height: 40px;
+    border: 2px solid #ccc; /* Border color */
+    border-radius: 20px; /* Half of the height to make it circular */
+    padding: 0 20px; /* Padding inside the search box */
+    font-size: 16px;
+    outline: none; /* Remove the default outline */
+    transition: all 0.3s ease; /* Smooth transition for focus */
+    
+}
+
+.search-box:focus {
+    border-color: #007BFF; /* Change border color on focus */
+    box-shadow: 0 0 8px rgba(0, 123, 255, 0.5); /* Add a shadow effect */
+}
+.search-btn {
+    margin-right: 5%;
+    width: 60px;
+    height: 60px;
+    color: #fff;
+    border-radius: 50%;
+    padding: 0px 12px 0px 7px;
+    background: linear-gradient(to left, rgb(45, 62, 218), white 250%);
+    border: 1px solid #fff;
+   cursor: pointer;
+}
+.search-btn:hover{
+    box-shadow: 0 0px 20px 10px #aaaaaa; /* Increased shadow size */
+    transition: all 0.3s ease;
+}
+.logout{
+    cursor: pointer;
+}
+.logout:hover{
+    opacity: 80%;
+    transition: all 0.3s ease;
+}

@@ -1,0 +1,1284 @@
+/* To implement a React + Firebase project with login/signup functionality and a contact list that is stored in Firebase, here's how you can break it down:
+
+Steps to Implement:
+Set up Firebase in your React project.
+Create Firebase Authentication for login/signup.
+Create Firestore Database to store contact details.
+Modify the Hero page to display contacts from Firebase after login.
+Steps to achieve this:
+1. Set up Firebase in Your React Project:
+Install Firebase:
+
+bash
+Copy code
+yarn add firebase
+Create a Firebase project at Firebase Console.
+
+Get your Firebase config and initialize Firebase in your project. Create a firebase.js file:
+
+javascript
+Copy code
+// src/firebase.js
+import { initializeApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
+
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+2. Create the Login/Signup Page
+You can create a simple login/signup page using Firebase Authentication.
+
+javascript
+Copy code
+// src/Login.js
+import React, { useState } from 'react';
+import { auth } from './firebase';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
+import { useNavigate } from 'react-router-dom';
+
+export default function Login() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSignup, setIsSignup] = useState(false);
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (isSignup) {
+        await createUserWithEmailAndPassword(auth, email, password);
+      } else {
+        await signInWithEmailAndPassword(auth, email, password);
+      }
+      navigate('/hero');  // Redirect to Hero page on success
+    } catch (error) {
+      console.error("Authentication failed:", error);
+    }
+  };
+
+  return (
+    <div>
+      <h2>{isSignup ? "Signup" : "Login"}</h2>
+      <form onSubmit={handleSubmit}>
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <button type="submit">{isSignup ? "Signup" : "Login"}</button>
+      </form>
+      <button onClick={() => setIsSignup(!isSignup)}>
+        {isSignup ? "Switch to Login" : "Switch to Signup"}
+      </button>
+    </div>
+  );
+}
+3. Modify Hero Page to Retrieve and Display Contacts from Firebase:
+Once logged in, the Hero page should fetch and display contacts stored in Firestore.
+
+javascript
+Copy code
+// src/Hero.js
+import React, { useEffect, useState } from 'react';
+import { db } from './firebase';
+import { collection, getDocs, addDoc } from 'firebase/firestore';
+import './Hero.css';
+import 'bootstrap-icons/font/bootstrap-icons.css';
+
+export default function Hero() {
+  const [contacts, setContacts] = useState([]);
+
+  // Fetch contacts from Firebase Firestore
+  useEffect(() => {
+    const fetchContacts = async () => {
+      const contactCollection = collection(db, 'contacts');
+      const contactSnapshot = await getDocs(contactCollection);
+      const contactList = contactSnapshot.docs.map(doc => doc.data());
+      setContacts(contactList);
+    };
+    fetchContacts();
+  }, []);
+
+  const addContact = async () => {
+    const newName = prompt('Enter new contact name:');
+    if (newName) {
+      await addDoc(collection(db, 'contacts'), { name: newName });
+      setContacts([...contacts, { name: newName }]);
+    }
+  };
+
+  return (
+    <>
+      <div className="container">
+        <div className="grid">
+          {contacts.map((contact, index) => (
+            <div className="item" key={index}>
+              <i className="bi bi-person-fill"></i>
+              <p className="contact-name">{contact.name}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="add">
+        <button onClick={addContact}>Add Contact</button>
+      </div>
+    </>
+  );
+}
+4. Set Up React Router for Navigation:
+To navigate between the login page and the hero page, use React Router.
+
+bash
+Copy code
+yarn add react-router-dom
+javascript
+Copy code
+// src/App.js
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import Hero from './Hero';
+import Login from './Login';
+
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/hero" element={<Hero />} />
+        <Route path="/" element={<Login />} />
+      </Routes>
+    </Router>
+  );
+}
+
+export default App;
+Notes:
+Firestore Structure: You should create a collection called contacts in Firestore. Each document can store a contact with a name field.
+Firebase Rules: Ensure that Firestore security rules allow authenticated users to read/write the contacts collection.
+
+
+
+
+
+import { useState, useEffect } from 'react';
+import { db } from '../../firebase';
+import { collection, getDocs } from 'firebase/firestore';
+import './Hero.css';
+import 'bootstrap-icons/font/bootstrap-icons.css';
+
+export default function Hero() {
+  const [contacts, setContacts] = useState([]);
+  const [selectedContact, setSelectedContact] = useState(null); // State to hold selected contact
+  const [showPopup, setShowPopup] = useState(false); // State to control popup visibility
+
+  useEffect(() => {
+    const fetchContacts = async () => {
+      const contactCollection = collection(db, 'contacts');
+      const contactSnapshot = await getDocs(contactCollection);
+      const contactList = contactSnapshot.docs.map((doc) => doc.data());
+      setContacts(contactList);
+    };
+    fetchContacts();
+  }, []);
+
+  const handleItemClick = (contact) => {
+    setSelectedContact(contact); // Set the selected contact
+    setShowPopup(true); // Show the popup
+  };
+
+  const closePopup = () => {
+    setShowPopup(false); // Hide the popup
+  };
+
+  return (
+    <>
+      <div className="nav-container">
+        <div className="header">
+          <div className="name">
+            <h2>Hello</h2>
+            <h2>Priyanshu</h2>
+          </div>
+          <input type="search" id="search" className="search-box" />
+          <button className="search-btn">Search</button>
+          <p className="logout">Log Out</p>
+        </div>
+      </div>
+
+      <div className="container">
+        <div className="grid">
+          {contacts.map((contact, index) => (
+            <div
+              className="item"
+              key={index}
+              onClick={() => handleItemClick(contact)} // On click, show popup with contact details
+            >
+              <i className="bi bi-person-fill"></i>
+              <p className="contact-name">{contact.Name}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {showPopup && selectedContact && (
+        <div className="popup-overlay">
+          <div className="popup-content">
+            <h3>{selectedContact.Name}</h3>
+            <p>Mobile: {selectedContact.Mobile}</p>
+            <p>Email: {selectedContact.Email}</p>
+            <button className="close-btn" onClick={closePopup}>
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="add">
+        <button>ye vala</button>
+      </div>
+    </>
+  );
+}
+
+
+import { useState, useEffect } from 'react';
+import { db } from '../../firebase'
+import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore'; // Import deleteDoc
+import './Hero.css';
+import 'bootstrap-icons/font/bootstrap-icons.css';
+
+export default function Hero() {
+
+  const [contacts, setContacts] = useState([]);
+  const [selectContact, setSelectContact] = useState(null);
+  const [showPop, SetShowPop] = useState(false);
+
+  useEffect(() => {
+    const fetchContacts = async () => {
+      const contactCollection = collection(db, 'contacts');
+      const contactSnapshot = await getDocs(contactCollection);
+      // Fetch the document ID along with the data
+      const contactList = contactSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+      setContacts(contactList);
+    };
+    fetchContacts();
+  }, []);
+
+  const handleClick = (contact) => {
+    setSelectContact(contact);
+    SetShowPop(true);
+  }
+
+  const closePopup = () => {
+    SetShowPop(false);
+  }
+
+  // Function to delete a contact
+  const handleDelete = async () => {
+    if (selectContact && selectContact.id) {
+      try {
+        await deleteDoc(doc(db, 'contacts', selectContact.id)); // Delete the document by its ID
+        setContacts(contacts.filter(contact => contact.id !== selectContact.id)); // Update state to remove deleted contact
+        SetShowPop(false); // Close the popup
+      } catch (error) {
+        console.error("Error deleting contact: ", error);
+      }
+    }
+  }
+
+  return (
+    <>
+      <div className="nav-container">
+        <div className="header">
+          <div className="name">
+            <h2>Hello </h2>
+            <h2>Priyanshu</h2>
+          </div>
+          <input type="search" name="" id="search" className='search-box' />
+          <button className='search-btn'>Search</button>
+          <p className="logout">Log Out</p>
+        </div>
+      </div>
+
+      <div className="container">
+        <div className="grid">
+          {contacts.map((contact, index) => (
+            <div
+              className="item"
+              key={index}
+              onClick={() => handleClick(contact)} // Pass the contact object to handleClick
+            >
+              <i className="bi bi-person-fill"></i>
+              <p className="contact-name">{contact.Name}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {showPop && selectContact && (
+        <div className="popup-overlay">
+          <div className="popup-content">
+            <div className="popupleft">
+              <i className="bi bi-person-fill"></i>
+            </div>
+
+            <hr />
+
+            <div className="popupright">
+              <h2 className='contact-name'>{selectContact.Name}</h2>
+              <p className='
+
+
+
+              // modify
+              import { useState, useEffect } from 'react';
+import { db } from '../../firebase';
+import { collection, getDocs, doc, deleteDoc, updateDoc } from 'firebase/firestore';
+import './Hero.css';
+import 'bootstrap-icons/font/bootstrap-icons.css';
+
+export default function Hero() {
+  const [contacts, setContacts] = useState([]);
+  const [selectContact, setSelectContact] = useState(null);
+  const [showPop, SetShowPop] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [updatedName, setUpdatedName] = useState('');
+  const [updatedMobile, setUpdatedMobile] = useState('');
+  const [updatedEmail, setUpdatedEmail] = useState('');
+
+  useEffect(() => {
+    const fetchContacts = async () => {
+      const contactCollection = collection(db, 'contacts');
+      const contactSnapshot = await getDocs(contactCollection);
+      const contactList = contactSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+      setContacts(contactList);
+    };
+    fetchContacts();
+  }, []);
+
+  const handleClick = (contact) => {
+    setSelectContact(contact);
+    SetShowPop(true);
+    setIsEditing(false); // Initially, the form is not in editing mode
+    setUpdatedName(contact.Name);
+    setUpdatedMobile(contact.mobile);
+    setUpdatedEmail(contact.email);
+  };
+
+  const closePopup = () => {
+    SetShowPop(false);
+  };
+
+  const handleDelete = async () => {
+    if (selectContact && selectContact.id) {
+      try {
+        await deleteDoc(doc(db, 'contacts', selectContact.id));
+        setContacts(contacts.filter(contact => contact.id !== selectContact.id));
+        SetShowPop(false);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  };
+
+  const handleSave = async () => {
+    if (selectContact && selectContact.id) {
+      try {
+        const contactRef = doc(db, 'contacts', selectContact.id);
+        await updateDoc(contactRef, {
+          Name: updatedName,
+          mobile: updatedMobile,
+          email: updatedEmail,
+        });
+        setContacts(contacts.map(contact => contact.id === selectContact.id ? { ...contact, Name: updatedName, mobile: updatedMobile, email: updatedEmail } : contact));
+        SetShowPop(false);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  };
+
+  return (
+    <>
+      <div className="nav-container">
+        <div className="header">
+          <div className="name">
+            <h2>Hello</h2>
+            <h2>Priyanshu</h2>
+          </div>
+          <input type="search" name="" id="search" className='search-box' />
+          <button className='search-btn'>Search</button>
+          <p className="logout">Log Out</p>
+        </div>
+      </div>
+
+      <div className="container">
+        <div className="grid">
+          {contacts.map((contact, index) => (
+            <div className="item" key={index} onClick={() => handleClick(contact)}>
+              <i className="bi bi-person-fill"></i>
+              <p className="contact-name">{contact.Name}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {showPop && selectContact && (
+        <div className="popup-overlay">
+          <div className="popup-content">
+            <div className="popupleft">
+              <i className="bi bi-person-fill"></i>
+            </div>
+            <hr />
+            <div className="popupright">
+              {isEditing ? (
+                <>
+                  <input type="text" value={updatedName} onChange={e => setUpdatedName(e.target.value)} />
+                  <input type="text" value={updatedMobile} onChange={e => setUpdatedMobile(e.target.value)} />
+                  <input type="text" value={updatedEmail} onChange={e => setUpdatedEmail(e.target.value)} />
+                  <button className='actionbtn save' onClick={handleSave}>Save</button>
+                </>
+              ) : (
+                <>
+                  <h2 className='contact-name'>{selectContact.Name}</h2>
+                  <p className='contact-mobile'>Mobile: {selectContact.mobile}</p>
+                  <p className='contact-email'>Email: {selectContact.email}</p>
+                  <button className='actionbtn edit' onClick={() => setIsEditing(true)}>Edit</button>
+                </>
+              )}
+              <button className='actionbtn delete' onClick={handleDelete}>Delete</button>
+            </div>
+            <button className="close-btn" onClick={closePopup}>x</button>
+          </div>
+        </div>
+      )}
+
+      <div className="add">
+        <button>ye vala</button>
+      </div>
+    </>
+  );
+}
+
+
+import { useState, useEffect } from 'react';
+import { db } from '../../firebase';
+import { collection, getDocs, addDoc, doc, deleteDoc, updateDoc } from 'firebase/firestore';
+import './Hero.css';
+import 'bootstrap-icons/font/bootstrap-icons.css';
+
+export default function Hero() {
+
+  const [contacts, setContacts] = useState([]);
+  const [selectContact, setSelectContact] = useState(null);
+  const [showPop, SetShowPop] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [updateName, setUpdateName] = useState('');
+  const [updateMobile, setUpdateMobile] = useState('');
+  const [updateEmail, setUpdateEmail] = useState('');
+  
+  // State for adding a new contact
+  const [isAdding, setIsAdding] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [newMobile, setNewMobile] = useState('');
+  const [newEmail, setNewEmail] = useState('');
+
+  useEffect(() => {
+    const fetchContacts = async () => {
+      const contactCollection = collection(db, 'contacts');
+      const contactSnapshot = await getDocs(contactCollection);
+      const contactList = contactSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+      setContacts(contactList);
+    };
+    fetchContacts();
+  }, []);
+
+  const handleClick = (contact) => {
+    setSelectContact(contact);
+    SetShowPop(true);
+    setIsEditing(false);
+    setUpdateName(contact.Name);
+    setUpdateMobile(contact.mobile);
+    setUpdateEmail(contact.gmailid);
+  }
+
+  const closePopup = () => {
+    SetShowPop(false);
+    setIsAdding(false);
+  }
+
+  const handleDelete = async () => {
+    if (selectContact && selectContact.id) {
+      try {
+        await deleteDoc(doc(db, 'contacts', selectContact.id));
+        setContacts(contacts.filter(contact => contact.id !== selectContact.id));
+        SetShowPop(false);
+      } catch (error) {
+        console.log((error));
+      }
+    }
+  }
+
+  const handleSave = async () => {
+    if (selectContact && selectContact.id) {
+      try {
+        const contactRef = doc(db, 'contacts', selectContact.id);
+        await updateDoc(contactRef, {
+          Name: updateName,
+          mobile: updateMobile,
+          gmailid: updateEmail,
+        });
+        setContacts(contacts.map(contact => contact.id === selectContact.id ? { ...contact, Name: updateName, mobile: updateMobile, gmailid: updateEmail } : contact));
+        SetShowPop(false);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  };
+
+  const handleAddContact = async () => {
+    try {
+      const newContact = { Name: newName, mobile: newMobile, gmailid: newEmail };
+      const contactCollection = collection(db, 'contacts');
+      const docRef = await addDoc(contactCollection, newContact);
+      setContacts([...contacts, { ...newContact, id: docRef.id }]);
+      setIsAdding(false); // Close the form after adding
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  return (
+    <>
+      <div className="nav-container">
+        <div className="header">
+          <div className="name">
+            <h2>Hello</h2>
+            <h2>Priyanshu</h2>
+          </div>
+          <input type="search" name="" id="search" className='search-box' />
+          <button className='search-btn'>Search</button>
+          <p className="logout">Log Out</p>
+        </div>
+      </div>
+
+      <div className="container">
+        <div className="grid">
+          {contacts.map((contact, index) => (
+            <div
+              className="item"
+              key={index}
+              onClick={() => handleClick(contact)} // Pass the contact object to handleClick
+            >
+              <i className="bi bi-person-fill"></i>
+              <p className="contact-name">{contact.Name}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+    
+      {showPop && selectContact && (
+        <div className="popup-overlay">
+          <div className="popup-content">
+            <div className="popupleft">
+              <i className="bi bi-person-fill"></i>
+            </div>
+            <hr />
+            <div className="popupright">
+              {isEditing ? (
+                <>
+                  <div className="editing-elements">
+                    <input type="text" placeholder='Name' value={updateName} onChange={e => setUpdateName(e.target.value)} />
+                    <input type="mobile" placeholder='Mobile' value={updateMobile} onChange={e => setUpdateMobile(e.target.value)} />
+                    <input type="text" placeholder='Email' value={updateEmail} onChange={e => setUpdateEmail(e.target.value)} />
+                  </div>
+                  <button className='actionbtn edit save' onClick={handleSave}>Save</button>
+                </>
+              ) : (
+                <>
+                  <h2 className='contact-name'>{selectContact.Name}</h2>
+                  <p className='contact-mobile'>Mobile: {selectContact.mobile}</p>
+                  <p className='contact-email'>Email: {selectContact.gmailid}</p>
+                  <button className='actionbtn edit' onClick={() => setIsEditing(true)}>Edit</button>
+                  <button className='actionbtn delete' onClick={handleDelete}>Delete</button>
+                </>
+              )}
+            </div>
+            <button className="close-btn" onClick={closePopup}>x</button>
+          </div>
+        </div>
+      )}
+
+     
+      {isAdding && (
+        <div className="popup-overlay">
+          <div className="popup-content">
+            <div className="editing-elements">
+              <input type="text" placeholder='Name' value={newName} onChange={e => setNewName(e.target.value)} />
+              <input type="mobile" placeholder='Mobile' value={newMobile} onChange={e => setNewMobile(e.target.value)} />
+              <input type="text" placeholder='Email' value={newEmail} onChange={e => setNewEmail(e.target.value)} />
+            </div>
+            <button className='actionbtn edit save' onClick={handleAddContact}>Add Contact</button>
+            <button className="close-btn" onClick={closePopup}>x</button>
+          </div>
+        </div>
+      )}
+
+    
+      <div className="add">
+        <button onClick={() => setIsAdding(true)}>Add Contact</button>
+      </div>
+    </>
+  );
+}
+
+
+const handleAddContact = async () => {
+  // Check if the contact already exists by comparing names, mobiles, or emails
+  const isDuplicate = contacts.some(contact =>
+    contact.Name === newName || contact.mobile === newMobile || contact.gmailid === newgmail
+  );
+
+  if (isDuplicate) {
+    alert("This contact already exists. Please add a unique contact.");
+    return;
+  }
+
+  try {
+    const newContact = { Name: newName, mobile: newMobile, gmailid: newgmail };
+    const contactCollection = collection(db, 'contacts');
+    const docRef = await addDoc(contactCollection, newContact);
+    setContacts([...contacts, { ...newContact, id: docRef.id }]);
+    setisAdding(false);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+import { useState, useEffect } from 'react';
+import { db, auth } from '../../firebase'; // Import auth for signOut
+import { collection, getDocs, addDoc, doc, deleteDoc, updateDoc } from 'firebase/firestore';
+import { signOut } from 'firebase/auth'; // Import signOut from Firebase
+import { useNavigate } from 'react-router-dom'; // For navigation
+import './Hero.css';
+import 'bootstrap-icons/font/bootstrap-icons.css';
+
+export default function Hero() {
+  const [contacts, setContacts] = useState([]);
+  const [filteredContacts, setFilteredContacts] = useState([]); // State for filtered contacts
+  const [selectContact, setSelectContact] = useState(null);
+  const [showPop, SetShowPop] = useState(false);
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [updateName, setUpdateName] = useState('');
+  const [updateMobile, setUpdateMobile] = useState('');
+  const [updateEmail, setUpdateEmail] = useState('');
+
+  const [isAdding, setisAdding] = useState(false);
+  const [newName, setnewName] = useState('');
+  const [newMobile, setnewMobile] = useState('');
+  const [newgmail, setnewgmail] = useState('');
+
+  const [searchQuery, setSearchQuery] = useState(''); // State for search query
+
+  const navigate = useNavigate(); // Hook to navigate between pages
+
+  useEffect(() => {
+    const fetchContacts = async () => {
+      try {
+        const contactCollection = collection(db, 'contacts');
+        const contactSnapshot = await getDocs(contactCollection);
+        const contactList = contactSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+        setContacts(contactList);
+        setFilteredContacts(contactList); // Initialize filteredContacts with full contacts
+      } catch (error) {
+        console.error('Error fetching contacts:', error);
+      }
+    };
+    fetchContacts();
+  }, []);
+
+  useEffect(() => {
+    // Filter contacts based on the search query
+    const filterResults = contacts.filter(
+      contact =>
+        contact.Name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        contact.mobile.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        contact.gmailid.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredContacts(filterResults); // Update the filtered contacts state
+  }, [searchQuery, contacts]);
+
+  const handleClick = contact => {
+    setSelectContact(contact);
+    SetShowPop(true);
+    setIsEditing(false);
+    setUpdateName(contact.Name);
+    setUpdateMobile(contact.mobile);
+    setUpdateEmail(contact.gmailid);
+  };
+
+  const closePopup = () => {
+    SetShowPop(false);
+  };
+
+  const closeAddPopup = () => {
+    setisAdding(false);
+  };
+
+  const handleDelete = async () => {
+    if (selectContact && selectContact.id) {
+      try {
+        await deleteDoc(doc(db, 'contacts', selectContact.id));
+        setContacts(contacts.filter(contact => contact.id !== selectContact.id));
+        SetShowPop(false);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  };
+
+  const handleSave = async () => {
+    if (selectContact && selectContact.id) {
+      try {
+        const contactRef = doc(db, 'contacts', selectContact.id);
+        await updateDoc(contactRef, {
+          Name: updateName,
+          mobile: updateMobile,
+          gmailid: updateEmail,
+        });
+        setContacts(
+          contacts.map(contact =>
+            contact.id === selectContact.id
+              ? { ...contact, Name: updateName, mobile: updateMobile, gmailid: updateEmail }
+              : contact
+          )
+        );
+        SetShowPop(false);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  };
+
+  const handleAddContact = async () => {
+    const isDuplicate = contacts.some(contact => contact.Name === newName || contact.mobile === newMobile || contact.gmailid === newgmail);
+    if (isDuplicate) {
+      alert('This contact already exists. Please add a unique contact.');
+      return;
+    }
+
+    try {
+      const newContact = { Name: newName, mobile: newMobile, gmailid: newgmail };
+      const contactCollection = collection(db, 'contacts');
+      const docRef = await addDoc(contactCollection, newContact);
+      setContacts([...contacts, { ...newContact, id: docRef.id }]);
+      setisAdding(false);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth); // Sign out the user
+      navigate('/login'); // Redirect to login page
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
+  };
+
+  return (
+    <>
+      <div className="nav-container">
+        <div className="header">
+          <div className="name">
+            <h2>Hello</h2>
+            <h2>Priyanshu</h2>
+          </div>
+          <input
+            type="search"
+            id="search"
+            className="search-box"
+            placeholder="Search by name, mobile, or email..."
+            value={searchQuery} // Bind search input to searchQuery state
+            onChange={e => setSearchQuery(e.target.value)} // Update searchQuery state on input change
+          />
+          <p className="logout" onClick={handleLogout}>Log Out</p>
+        </div>
+      </div>
+
+      <div className="container">
+        <div className="grid">
+          {filteredContacts.length > 0 ? (
+            filteredContacts.map((contact, index) => (
+              <div className="item" key={index} onClick={() => handleClick(contact)}>
+                <i className="bi bi-person-fill"></i>
+                <p className="contact-name">{contact.Name}</p>
+              </div>
+            ))
+          ) : (
+            <p>No contacts found matching the search.</p>
+          )}
+        </div>
+      </div>
+
+      {showPop && selectContact && (
+        <div className="popup-overlay">
+          <div className="popup-content">
+            <div className="popupleft">
+              <i className="bi bi-person-fill"></i>
+            </div>
+
+            <hr />
+
+            <div className="popupright">
+              {isEditing ? (
+                <>
+                  <div className="editing-elements">
+                    <input
+                      type="text"
+                      placeholder="Name"
+                      value={updateName}
+                      onChange={e => setUpdateName(e.target.value)}
+                    />
+                    <input
+                      type="mobile"
+                      placeholder="7876641109"
+                      value={updateMobile}
+                      onChange={e => setUpdateMobile(e.target.value)}
+                    />
+                    <input
+                      type="text"
+                      placeholder="example@gmail.com"
+                      value={updateEmail}
+                      onChange={e => setUpdateEmail(e.target.value)}
+                    />
+                  </div>
+                  <button className="actionbtn edit save" onClick={handleSave}>
+                    Save
+                  </button>
+                </>
+              ) : (
+                <>
+                  <h2 className="contact-name">{selectContact.Name}</h2>
+                  <p className="contact-mobile">Mobile: {selectContact.mobile}</p>
+                  <p className="contact-email">Email: {selectContact.gmailid}</p>
+
+                  <button className="actionbtn edit" onClick={() => setIsEditing(true)}>
+                    Edit
+                  </button>
+
+                  <button className="actionbtn delete" onClick={handleDelete}>
+                    Delete
+                  </button>
+                </>
+              )}
+            </div>
+
+            <button className="close-btn" onClick={closePopup}>
+              x
+            </button>
+          </div>
+        </div>
+      )}
+
+      {isAdding && (
+        <div className="popup-overlay-add">
+          <div className="popup-content-add">
+            <h3>Add New Contact</h3>
+            <div className="adding-data-content">
+              <div className="editing-elements-add">
+                <input
+                  type="text"
+                  placeholder="Name"
+                  value={newName}
+                  onChange={e => setnewName(e.target.value)}
+                />
+                <input
+                  type="mobile"
+                  placeholder="Mobile"
+                  value={newMobile}
+                  onChange={e => setnewMobile(e.target.value)}
+                />
+                <input
+                  type="text"
+                  placeholder="Email"
+                  value={newgmail}
+                  onChange={e => setnewgmail(e.target.value)}
+                />
+              </div>
+              <button className="actionbtn save" onClick={handleAddContact}>
+                Add Contact
+              </button>
+              <button className="close-btn close-btn-add" onClick={closeAddPopup}>
+                x
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="add">
+        <button onClick={() => setisAdding(true)}>Add Contact</button>
+      </div>
+    </>
+  );
+}
+
+
+Contact Grouping
+Use state management (like useState or useReducer) to manage groups.
+Store each contact’s group in the contact object, and display contacts by group.
+Example:
+jsx
+Copy code
+const [contacts, setContacts] = useState([
+  { id: 1, name: "John", group: "Friends" },
+  { id: 2, name: "Sara", group: "Family" }
+]);
+
+const groupedContacts = contacts.reduce((acc, contact) => {
+  const group = contact.group || "Uncategorized";
+  if (!acc[group]) acc[group] = [];
+  acc[group].push(contact);
+  return acc;
+}, {});
+2. Contact Search
+Use useState to store the search term and filter contacts based on it.
+jsx
+Copy code
+const [searchTerm, setSearchTerm] = useState("");
+
+const filteredContacts = contacts.filter(contact =>
+  contact.name.toLowerCase().includes(searchTerm.toLowerCase())
+);
+
+return (
+  <input
+    type="text"
+    placeholder="Search Contacts"
+    value={searchTerm}
+    onChange={(e) => setSearchTerm(e.target.value)}
+  />
+);
+3. Favorites
+Add a "favorite" boolean property to each contact and allow users to toggle it.
+jsx
+Copy code
+const toggleFavorite = (id) => {
+  setContacts(contacts.map(contact =>
+    contact.id === id ? { ...contact, favorite: !contact.favorite } : contact
+  ));
+};
+
+return contacts.filter(contact => contact.favorite);
+4. Import/Export Contacts
+For import: Allow users to upload a CSV file, parse it using libraries like PapaParse, and update the state.
+For export: Convert the contact data to CSV format and allow users to download it.
+Example CSV import using PapaParse:
+
+bash
+Copy code
+npm install papaparse
+jsx
+Copy code
+import Papa from 'papaparse';
+
+const handleFileUpload = (e) => {
+  const file = e.target.files[0];
+  Papa.parse(file, {
+    complete: (result) => {
+      const parsedContacts = result.data.map(([name, phone]) => ({
+        name,
+        phone
+      }));
+      setContacts(parsedContacts);
+    }
+  });
+};
+
+return <input type="file" accept=".csv" onChange={handleFileUpload} />;
+5. Notes and Tags
+Add a notes and tags property to each contact and provide input fields for them in the contact form.
+jsx
+Copy code
+<textarea 
+  placeholder="Notes" 
+  value={contact.notes} 
+  onChange={(e) => handleNotesChange(e, contact.id)} 
+/>
+6. Profile Picture Upload
+Use useState to store the uploaded image URL for each contact and display it using an <img> tag.
+jsx
+Copy code
+const handleProfilePicChange = (e, id) => {
+  const file = e.target.files[0];
+  const imageUrl = URL.createObjectURL(file);
+  setContacts(contacts.map(contact =>
+    contact.id === id ? { ...contact, profilePic: imageUrl } : contact
+  ));
+};
+
+return <input type="file" accept="image/*" onChange={(e) => handleProfilePicChange(e, contact.id)} />;
+7. Social Media Links
+Add fields for social media links to the contact model and render them as hyperlinks.
+jsx
+Copy code
+<input
+  type="url"
+  placeholder="LinkedIn URL"
+  value={contact.linkedin}
+  onChange={(e) => handleSocialChange(e, contact.id)}
+/>
+8. Reminder Feature
+Use Date fields and setTimeout or libraries like moment.js to trigger reminders on important dates.
+jsx
+Copy code
+const handleReminder = (date) => {
+  const timeToReminder = new Date(date).getTime() - Date.now();
+  setTimeout(() => {
+    alert("Reminder for important date!");
+  }, timeToReminder);
+};
+9. Backup and Sync
+Use Firebase or a similar service to store contacts in the cloud and sync with local data.
+Example for Firebase:
+
+bash
+Copy code
+npm install firebase
+jsx
+Copy code
+import { initializeApp } from "firebase/app";
+import { getFirestore, collection, addDoc } from "firebase/firestore";
+
+const firebaseConfig = {
+  apiKey: "your-api-key",
+  authDomain: "your-project-id.firebaseapp.com",
+  projectId: "your-project-id"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const saveContactToFirebase = async (contact) => {
+  try {
+    await addDoc(collection(db, "contacts"), contact);
+  } catch (e) {
+    console.error("Error adding document: ", e);
+  }
+};
+10. Dark/Light Mode
+Implement a toggle using useState to switch between dark and light themes.
+jsx
+Copy code
+const [isDarkMode, setIsDarkMode] = useState(false);
+
+const toggleTheme = () => setIsDarkMode(!isDarkMode);
+
+return (
+  <div className={isDarkMode ? 'dark-mode' : 'light-mode'}>
+    <button onClick={toggleTheme}>
+      {isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+    </button>
+  </div>
+);
+
+
+
+
+
+
+These components will help make your website dynamic and provide a better user experience!
+
+
+const handleAddContact = async () => {
+  const isDuplicate = contacts.some(contact => contact.Name === newName || contact.mobile === newMobile || contact.gmailid === newgmail);
+  if (isDuplicate) {
+    alert('This contact already exists. Please add a unique contact.');
+    return;
+  }
+
+  try {
+    const newContact = {
+      Name: newName,
+      mobile: newMobile,
+      gmailid: newgmail,
+      groups: [],  // Initialize with no groups
+      favorite: false,  // Initialize as not a favorite
+    };
+    const contactCollection = collection(db, 'contacts');
+    const docRef = await addDoc(contactCollection, newContact);
+    setContacts([...contacts, { ...newContact, id: docRef.id }]);
+    setisAdding(false);
+  } catch (error) {
+    console.log(error);
+  }
+};
+2. Handling Groups:
+To add or remove contacts from groups, modify the handleSave function:
+
+js
+Copy code
+const handleSave = async () => {
+  if (selectContact && selectContact.id) {
+    try {
+      const contactRef = doc(db, 'contacts', selectContact.id);
+      await updateDoc(contactRef, {
+        Name: updateName,
+        mobile: updateMobile,
+        gmailid: updateEmail,
+        groups: selectedGroups,  // Add groups to the contact
+        favorite: isFavorite,  // Update favorite status
+      });
+      setContacts(
+        contacts.map(contact =>
+          contact.id === selectContact.id
+            ? { ...contact, Name: updateName, mobile: updateMobile, gmailid: updateEmail, groups: selectedGroups, favorite: isFavorite }
+            : contact
+        )
+      );
+      SetShowPop(false);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+};
+3. UI for Group Selection:
+You can update the popup where you show the contact details to allow group assignment:
+
+jsx
+Copy code
+<div className="groups">
+  <p>Add to groups:</p>
+  <button onClick={() => handleGroupChange('Friends')}>Friends</button>
+  <button onClick={() => handleGroupChange('Family')}>Family</button>
+  <button onClick={() => handleGroupChange('Office')}>Office</button>
+</div>
+Here’s how handleGroupChange can look:
+
+js
+Copy code
+const [selectedGroups, setSelectedGroups] = useState(selectContact?.groups || []);
+
+const handleGroupChange = (group) => {
+  if (selectedGroups.includes(group)) {
+    setSelectedGroups(selectedGroups.filter(g => g !== group));
+  } else {
+    setSelectedGroups([...selectedGroups, group]);
+  }
+};
+4. Handling Favorites:
+For managing favorites, add a button or icon inside the contact popup to toggle the favorite status:
+
+jsx
+Copy code
+<div className="favs">
+  <p>
+    Add to Favorites: 
+    <i className={`bi bi-suit-heart${isFavorite ? '-fill' : ''}`} onClick={toggleFavorite}></i>
+  </p>
+</div>
+And define the toggleFavorite function:
+
+js
+Copy code
+const [isFavorite, setIsFavorite] = useState(selectContact?.favorite || false);
+
+const toggleFavorite = () => {
+  setIsFavorite(!isFavorite);
+};
+5. Filtering Contacts by Group or Favorites:
+You can filter the displayed contacts by group or favorite status:
+
+jsx
+Copy code
+<button onClick={() => setFilteredContacts(contacts.filter(contact => contact.groups.includes('Friends')))}>Show Friends</button>
+<button onClick={() => setFilteredContacts(contacts.filter(contact => contact.groups.includes('Family')))}>Show Family</button>
+<button onClick={() => setFilteredContacts(contacts.filter(contact => contact.favorite))}>Show Favorites</button>
+Full Example of Pop-up Logic with Groups and Favorites
+Here’s an updated snippet for the contact details popup, which includes group and favorite management:
+
+jsx
+Copy code
+<div className="popup-content">
+  <div className="popupright">
+    {isEditing ? (
+      <>
+        <div className="editing-elements">
+          <input
+            type="text"
+            placeholder="Name"
+            value={updateName}
+            onChange={e => setUpdateName(e.target.value)}
+          />
+          <input
+            type="mobile"
+            placeholder="Mobile"
+            value={updateMobile}
+            onChange={e => setUpdateMobile(e.target.value)}
+          />
+          <input
+            type="text"
+            placeholder="Email"
+            value={updateEmail}
+            onChange={e => setUpdateEmail(e.target.value)}
+          />
+          <div className="favs">
+            <p>
+              Add to Favourites: 
+              <i className={`bi bi-suit-heart${isFavorite ? '-fill' : ''}`} onClick={toggleFavorite}></i>
+            </p>
+          </div>
+          <div className="groups">
+            <p>Add to groups</p>
+            <button onClick={() => handleGroupChange('Friends')}>Friends</button>
+            <button onClick={() => handleGroupChange('Family')}>Family</button>
+            <button onClick={() => handleGroupChange('Office')}>Office</button>
+          </div>
+        </div>
+        <button className="actionbtn edit save" onClick={handleSave}>
+          Save
+        </button>
+      </>
+    ) : (
+      <>
+        <h2 className="popup-contact-name contact-name">{selectContact.Name}</h2>
+        <p className="popup-contact-mobile contact-mobile">Mobile: {selectContact.mobile}</p>
+        <p className="popup-contact-email contact-email">Email: {selectContact.gmailid}</p>
+        <p>Groups: {selectContact.groups?.join(', ')}</p>
+        <p>Favorite: {selectContact.favorite ? 'Yes' : 'No'}</p>
+
+        <button className="actionbtn edit" onClick={() => setIsEditing(true)}>
+          Edit
+        </button>
+        <button className="actionbtn delete" onClick={handleDelete}>
+          Delete
+        </button>
+      </>
+    )}
+  </div>
+
+  <button className="close-btn" onClick={closePopup}>
+    x
+  </button>
+</div>
+
+
+*/

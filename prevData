@@ -1,0 +1,288 @@
+import { useState, useEffect } from 'react';
+import { auth, db } from '../../firebase';
+import { collection, getDocs, addDoc, doc, deleteDoc, updateDoc } from 'firebase/firestore';
+import { signOut } from 'firebase/auth';
+import { Link, useNavigate} from 'react-router-dom'
+import { BrowserRouter, Routes,Route } from 'react-router-dom';
+import './Hero.css';
+
+import 'bootstrap-icons/font/bootstrap-icons.css';
+import Login from '../Login/Login';
+
+export default function Hero() {
+  const [contacts, setContacts] = useState([]);
+  const [filteredContacts, setFilteredContacts] = useState([]);
+  const [selectContact, setSelectContact] = useState(null);
+  const [showPop, SetShowPop] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [updateName, setUpdateName] = useState('');
+  const [updateMobile, setUpdateMobile] = useState('');
+  const [updateEmail, setUpdateEmail] = useState('');
+  const [isAdding, setisAdding] = useState(false);
+  const [newName, setnewName] = useState('');
+  const [newMobile, setnewMobile] = useState('');
+  const [newgmail, setnewgmail] = useState('');
+  const [searchQuery, setSearchQuery] = useState(''); // Search query state
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchContacts = async () => {
+      try {
+        const contactCollection = collection(db, 'contacts');
+        const contactSnapshot = await getDocs(contactCollection);
+        const contactList = contactSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id }));
+        setContacts(contactList);
+        setFilteredContacts(contactList); // Initialize filteredContacts with full contacts
+      } catch (error) {
+        console.error('Error fetching contacts:', error);
+      }
+    };
+    fetchContacts();
+  }, []);
+
+  // Search filter handler
+  const handleSearch = (event) => {
+    const searchInput = event.target.value.toLowerCase();
+    setSearchQuery(searchInput);
+
+    console.log('Search Query:', searchInput); // Debugging log
+
+    if (searchInput === '') {
+      setFilteredContacts(contacts); // Reset to show all contacts when input is cleared
+    } else {
+      const filtered = contacts.filter(contact => 
+        (contact.Name && contact.Name.toLowerCase().includes(searchInput)) ||
+        (contact.mobile && contact.mobile.includes(searchInput)) ||
+        (contact.gmailid && contact.gmailid.toLowerCase().includes(searchInput))
+      );
+      console.log('Filtered Contacts:', filtered); // Debugging log
+      setFilteredContacts(filtered);
+    }
+  };
+
+  const handleClick = contact => {
+    setSelectContact(contact);
+    SetShowPop(true);
+    setIsEditing(false);
+    setUpdateName(contact.Name);
+    setUpdateMobile(contact.mobile);
+    setUpdateEmail(contact.gmailid);
+  };
+
+  const closePopup = () => {
+    SetShowPop(false);
+  };
+
+  const closeAddPopup = () => {
+    setisAdding(false);
+  };
+
+  const handleDelete = async () => {
+    if (selectContact && selectContact.id) {
+      try {
+        await deleteDoc(doc(db, 'contacts', selectContact.id));
+        setContacts(contacts.filter(contact => contact.id !== selectContact.id));
+        SetShowPop(false);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  };
+
+  const handleSave = async () => {
+    if (selectContact && selectContact.id) {
+      try {
+        const contactRef = doc(db, 'contacts', selectContact.id);
+        await updateDoc(contactRef, {
+          Name: updateName,
+          mobile: updateMobile,
+          gmailid: updateEmail,
+        });
+        setContacts(
+          contacts.map(contact =>
+            contact.id === selectContact.id
+              ? { ...contact, Name: updateName, mobile: updateMobile, gmailid: updateEmail }
+              : contact
+          )
+        );
+        SetShowPop(false);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  };
+
+  const handleAddContact = async () => {
+    const isDuplicate = contacts.some(contact => contact.Name === newName || contact.mobile === newMobile || contact.gmailid === newgmail);
+    if (isDuplicate) {
+      alert('This contact already exists. Please add a unique contact.');
+      return;
+    }
+
+    try {
+      const newContact = { Name: newName, mobile: newMobile, gmailid: newgmail };
+      const contactCollection = collection(db, 'contacts');
+      const docRef = await addDoc(contactCollection, newContact);
+      setContacts([...contacts, { ...newContact, id: docRef.id }]);
+      setisAdding(false);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate('/login')
+      
+      {/* <BrowserRouter>
+      <Routes>
+        <Route path="/login" element = {<Login/>} >
+        
+        </Route>
+      </Routes>
+      </BrowserRouter> */}
+     // navigate('../Login/Login.jsx');  // Make sure the path matches your route
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  
+
+  return (
+    <>
+      <div className="nav-container">
+        <div className="header">
+          <div className="name">
+            <h2>Hello</h2>
+            <h2>Priyanshu</h2>
+          </div>
+          <input
+            type="search"
+            id="search"
+            className="search-box"
+            placeholder="Search by name, mobile, or email..."
+            value={searchQuery}
+            onChange={handleSearch} // Update search query state on input change
+          />
+          <p className="logout" onClick={handleLogout} >Log Out</p>
+        </div>
+      </div>
+
+      <div className="container">
+        <div className="grid">
+          {filteredContacts.length > 0 ? (
+            filteredContacts.map((contact, index) => (
+              <div className="item" key={index} onClick={() => handleClick(contact)}>
+                <i className="bi bi-person-fill"></i>
+                <p className="contact-name">{contact.Name}</p>
+              </div>
+            ))
+          ) : (
+            <p>No contacts found matching the search.</p>
+          )}
+        </div>
+      </div>
+
+      {showPop && selectContact && (
+        <div className="popup-overlay">
+          <div className="popup-content">
+            <div className="popupleft">
+              <i className="bi bi-person-fill"></i>
+            </div>
+
+            <hr />
+
+            <div className="popupright">
+              {isEditing ? (
+                <>
+                  <div className="editing-elements">
+                    <input
+                      type="text"
+                      placeholder="Name"
+                      value={updateName}
+                      onChange={e => setUpdateName(e.target.value)}
+                    />
+                    <input
+                      type="mobile"
+                      placeholder="7876641109"
+                      value={updateMobile}
+                      onChange={e => setUpdateMobile(e.target.value)}
+                    />
+                    <input
+                      type="text"
+                      placeholder="example@gmail.com"
+                      value={updateEmail}
+                      onChange={e => setUpdateEmail(e.target.value)}
+                    />
+                  </div>
+                  <button className="actionbtn edit save" onClick={handleSave}>
+                    Save
+                  </button>
+                </>
+              ) : (
+                <>
+                  <h2 className="contact-name">{selectContact.Name}</h2>
+                  <p className="contact-mobile">Mobile: {selectContact.mobile}</p>
+                  <p className="contact-email">Email: {selectContact.gmailid}</p>
+
+                  <button className="actionbtn edit" onClick={() => setIsEditing(true)}>
+                    Edit
+                  </button>
+
+                  <button className="actionbtn delete" onClick={handleDelete}>
+                    Delete
+                  </button>
+                </>
+              )}
+            </div>
+
+            <button className="close-btn" onClick={closePopup}>
+              x
+            </button>
+          </div>
+        </div>
+      )}
+
+      {isAdding && (
+        <div className="popup-overlay-add">
+          <div className="popup-content-add">
+            <h3>Add New Contact</h3>
+            <div className="adding-data-content">
+              <div className="editing-elements-add">
+                <input
+                  type="text"
+                  placeholder="Name"
+                  value={newName}
+                  onChange={e => setnewName(e.target.value)}
+                />
+                <input
+                  type="mobile"
+                  placeholder="Mobile"
+                  value={newMobile}
+                  onChange={e => setnewMobile(e.target.value)}
+                />
+                <input
+                  type="text"
+                  placeholder="Email"
+                  value={newgmail}
+                  onChange={e => setnewgmail(e.target.value)}
+                />
+              </div>
+              <button className="actionbtn save" onClick={handleAddContact}>
+                Add Contact
+              </button>
+              <button className="close-btn close-btn-add" onClick={closeAddPopup}>
+                x
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="add">
+        <button onClick={() => setisAdding(true)}>Add Contact</button>
+      </div>
+    </>
+  );
+}

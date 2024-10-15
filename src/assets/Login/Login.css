@@ -1,0 +1,248 @@
+/* General body styling */
+.loginBody {
+ background-color: #fff !important;
+    height: 100vh;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .div-one {
+    background: rgb(57,11,161);
+    background: linear-gradient(180deg, rgba(57,11,161,1) 5%, rgba(255,255,255,1) 80%);
+    width: 60%;
+    height: 95vh;
+    border-radius: 2%;
+    margin-left: -4%;
+    margin-top: -1.5%;
+    display: flex;
+    justify-content: center; /* Horizontal centering */
+    align-items: center; /* Vertical centering */
+    text-align: center;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    flex-direction: column;
+    
+  }
+
+  .div-one h1{
+
+  }
+  .GetMyContacts{
+    background-color: #ffffff00;
+    margin-top: -10px;
+  }
+  .div-one-loginSwitch {
+    padding: 18px 45px;
+    border: none;
+    background-color: rgb(31, 30, 30);
+    color: #fff;
+    font-size: 100%;
+    border-radius: 20px;
+    box-shadow: 1px 1px 10px #333;
+    cursor: pointer;
+    min-width: 200px;  /* Minimum width to prevent shrinking */
+    height: 50px;  /* Fixed height */
+    white-space: nowrap;  /* Prevent text from wrapping */
+    text-align: center;  /* Center text inside the button */
+    transition: all 0.2s ease; /* Smooth transition for any size change */
+}
+.div-two{
+  width: 35%;
+ 
+  display: flex;
+  text-align: center; 
+  align-items: center;
+  justify-content: center;
+ 
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+.login-container{
+  
+ width: 60%;
+ margin-left: 100px;
+}
+.inputForm{
+  display: flex;
+  flex-direction: column;
+}
+.loginHeading{
+  margin-top: -20%;
+  font-size: 250%;
+  font-family:'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+  background-color: #ffffff00;
+}
+.loginPara{
+  background-color: #ffffff00;
+  margin-top: 0px;
+}
+.inputForm{
+  margin-top: 50px;
+}
+input {
+  
+  border: none;
+  background-color: #3333330c;
+  padding: 20px 40px;
+  outline: none; /* Removes the default outline */
+}
+
+input:nth-child(1) {
+  margin-bottom: 40px;
+}
+
+
+.loginBtn{
+  margin-top: 20px;
+  max-width: 100%;
+  border-radius: 20px;
+  color: #fff;
+  font-size: large;
+  padding: 15px 20px;
+  border: none;
+  background: rgb(57,11,161);background: linear-gradient(106deg, rgba(57,11,161,0.8827906162464986) 23%, rgba(255,255,255,1) 100%);
+  cursor: pointer;
+  margin-bottom: 20px;
+}
+.googleSignInBtn{
+  margin-top: 20px;
+  color: #7237d1;
+  border: none;
+  padding: 15px 20px;
+  border-radius: 20px;
+
+  cursor: pointer;
+}
+.googleSignInBtn:hover{
+  box-shadow: 1px 1px 10px 5px  #7237d1;
+  transition: all 0.2s ease; 
+}
+@media only screen and (min-width: 350px) and (max-width: 430px) {
+
+  .div-one{
+    width: 1500%;
+    margin-left: 9px;
+  }
+
+  .login-container{
+    margin-top: 20px;
+    position: absolute;
+    left: -20px;
+  }
+  .login-container input{
+    background-color: #ffffff41;
+    color: #fff;
+  }
+  .loginHeading{
+    display: none;
+  }
+  .div-one h1
+  {
+    margin-top: -150%;
+  }
+}
+  /* 
+
+  .login-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: aliceblue;
+    width: 35vw;
+    height: 70vh;
+    border-radius: 10px;
+    box-shadow: -10px -1px 100px rgba(53, 49, 49, 0.514);
+    padding: 2rem;
+    text-align: center;
+  }
+  
+
+  .loginHeading {
+    font-size: 2.5rem; 
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    color: blue;
+    margin-bottom: 2rem; 
+    text-align: center;
+  }
+  
+  .login-container form {
+    width: 80%; 
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem; 
+  }
+  
+  .email, .pass {
+    margin-bottom: 1rem;
+  }
+  
+  .login-container input {
+    border-radius: 5px;
+    font-size: 1rem;
+    padding: 12px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+  
+
+  .loginBtn {
+    cursor: pointer;
+    box-shadow: 1px 5px 10px rgba(53, 49, 49, 0.514);
+    border-radius: 10px;
+    font-size: 1.2rem;
+    background-color: rgb(76, 76, 245);
+    border: none;
+    color: #fff;
+    width: 50%;
+    padding: 10px;
+    margin: 0 auto;
+  }
+  
+  .loginSwitch {
+    cursor: pointer;
+    box-shadow: 1px 5px 10px rgba(53, 49, 49, 0.514);
+    border-radius: 10px;
+    font-size: 1rem;
+    background-color: rgba(186, 186, 204, 0.479);
+    border: none;
+    color: blue;
+    width: 50%;
+    padding: 10px;
+    margin: 1rem auto 0 auto;
+  }
+  
+
+  .googleSignInBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 80%; 
+    padding: 12px;
+    background-color: white;
+    color: #757575;
+    font-size: 16px;
+    font-weight: 500;
+    border: 1px solid #dcdcdc;
+    border-radius: 5px;
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    margin-top: 1rem;
+  }
+  
+  .googleSignInBtn:hover {
+    background-color: #f7f7f7;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  .googleSignInBtn:before {
+    content: 'G';
+    font-size: 18px;
+    font-weight: bold;
+    color: #4285F4;
+    margin-right: 10px;
+    border-radius: 50%;
+    border: 1px solid #4285F4;
+    padding: 3px 9px;
+  }
+   */
