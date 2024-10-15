@@ -400,8 +400,8 @@ align-items: center;
   }
 @media only screen and (min-width: 350px) and (max-width: 430px) {
     .grid{
-       width: 340%;
-      
+       width: 100% !important;
+     
     }
     
     .input-container{
