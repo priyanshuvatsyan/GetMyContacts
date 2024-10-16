@@ -399,10 +399,10 @@ align-items: center;
     /* Styles for extra-large devices (wide desktops) */
   }
 @media only screen and (min-width: 350px) and (max-width: 430px) {
-    .grid{
+ /*    .grid{
        width: 95% !important;
         
-    }
+    } */
     
     .input-container{
         max-width: 250%;
