@@ -435,6 +435,7 @@ align-items: center;
     .grid{
         width: 90%;
         margin-left: 6%;
+        height: 50vh;
     }
     .contact-mobile{
         display: none;
@@ -450,7 +451,7 @@ align-items: center;
     }
     .add-contact-btn button{
         left: 30%;
-        
+        top: 75%;
        
     }
     .All-Contacts{
@@ -462,6 +463,14 @@ align-items: center;
     .main-container{
         height: auto;
     }
+    .nav-container{
+        height: auto;
+        border-bottom-right-radius: 20%;
+    }
+    .logout{
+        margin-top: 140%;
+    }
+
   }
   
 

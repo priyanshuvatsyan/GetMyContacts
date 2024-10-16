@@ -139,6 +139,10 @@ input:nth-child(1) {
   {
     margin-top: -150%;
   }
+  .div-one{
+    background: rgb(57,11,161);
+    background: linear-gradient(180deg, rgba(255,255,255,1) 5%,  rgba(56, 11, 161, 0.664)  80%);
+  }
 }
   /* 
 
