@@ -459,6 +459,9 @@ align-items: center;
     .popup-content, .popup-content-add{
         width: 300px;
     }
+    .main-container{
+        height: auto;
+    }
   }
   
 
